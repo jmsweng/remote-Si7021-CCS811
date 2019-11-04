@@ -197,12 +197,12 @@ void loop()
   // send data
   if (updateFlag)
   {
-    sendJSONviaMQTT(doc, mqtt_topic);
+    sendJSONviaMQTT(doc);
     updateFlag = false;
   }
 }
 
-void sendJSONviaMQTT(DynamicJsonDocument doc, char* mqtt_topic)
+void sendJSONviaMQTT(DynamicJsonDocument doc)
 {
   Serial.println("Sending the following MQTT Message...");
   serializeJson(doc, Serial);
@@ -225,7 +225,7 @@ void setup_wifi()
   // We start by connecting to a WiFi network
   Serial.println();
   Serial.print("Connecting to ");
-  Serial.println(wifi_ssid);
+  Serial.println(WLAN_SSID);
 
   //use one or the other
   WiFi.begin(WLAN_SSID, NULL); // open network
