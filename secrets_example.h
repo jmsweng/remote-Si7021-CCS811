@@ -1,4 +1,4 @@
-//copy and rename this file to secrets.h before using
+//create a copy of this file called "secrets.h" and use that to store secrets
 
 #ifndef SECRETS_H
 #define SECRETS_H
