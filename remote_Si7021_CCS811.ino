@@ -34,9 +34,10 @@ static const char *fingerprint PROGMEM = "77 00 54 2D DA E7 D8 03 27 31 23 99 EB
 
 /****************************** Feeds ***************************************/
 
-// Setup a feed called '<feedname>' for publishing.
+#define AIO_FEEDNAME    SECRET_AIO_FEEDNAME
+// Setup a feed for publishing.
 // Notice MQTT paths for AIO follow the form: <username>/feeds/<feedname>
-Adafruit_MQTT_Publish feed = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/<feedname>");
+Adafruit_MQTT_Publish feed = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/" SECRET_AIO_FEEDNAME);
 
 /****************************** Sensor Setup ***************************************/
 
