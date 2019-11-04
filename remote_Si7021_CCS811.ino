@@ -77,8 +77,7 @@ void setup()
   WiFi.mode(WIFI_STA);
   Serial.begin(115200);
   setup_wifi();
-  client.setServer(mqtt_server, 1883);
-  reconnect();
+  MQTT_connect();
   ESP8266_obj["ChipID"] = ESP.getChipId();
   // start Si7021
   if (!sensor.begin())
@@ -119,18 +118,14 @@ void setup()
   }
   if(Si7021_obj["Status"] == "ERROR" || CCS811_obj["Status"] == "ERROR")
   {
-    sendJSONviaMQTT(doc, mqtt_topic);
+    sendJSONviaMQTT(doc);
   }
 }
 
 void loop()
 {
   //reconnect to MQTT broker if necessary
-  if (!client.connected())
-  {
-    reconnect();
-  }
-  client.loop();
+  MQTT_connect();
 
   // process data from Si7021
   float newHum = sensor.readHumidity();
