@@ -1,4 +1,4 @@
-//rename file to secrets.h to use
+//copy and rename this file to secrets.h before using
 
 #ifndef SECRETS_H
 #define SECRETS_H
