@@ -6,6 +6,10 @@ This branch connects to an open WiFi network and uses AdafruitIO as the broker u
 
 ## Instructions
 
+### Download
+
+#### Using Git
+
 Clone the repo and checkout the `AdafruitIO` branch:
 
 ```shell
@@ -14,5 +18,9 @@ cd remote-Si7021-CCS811
 git checkout AdafruitIO
 git pull origin AdafruitIO
 ```
+
+#### Or download the zip
+
+### Create secrets file
 
 Create a copy of the `secrets_example.h` file and name it `secrets.h`. Add your secrets to the newly created `secrets.h` file.
