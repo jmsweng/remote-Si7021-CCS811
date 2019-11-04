@@ -48,6 +48,8 @@ Adafruit_Si7021 sensor = Adafruit_Si7021();
 
 // general setup
 bool updateFlag = false;
+bool timeUpdateFlag = true; // init to true so first message always gets sent with all sensor values
+unsigned long lastTimeUpdate = 0;
 
 void setup()
 {
@@ -109,11 +111,16 @@ void loop()
   }
   client.loop();
 
+  if (millis() - lastTimeUpdate <= 5*60*1000) //5 minutes
+  {
+    timeUpdateFlag = true;
+  }
+
   // process data from Si7021
   float newHum = sensor.readHumidity();
   float newTempC = sensor.readTemperature();
   float newTemp = Fahrenheit(newTempC);
-  if (checkBound(newTemp, temp, diffTemp))
+  if (checkBound(newTemp, temp, diffTemp) || timeUpdateFlag)
   {
     temp = newTemp;
     Serial.print("New temperature: ");
@@ -122,7 +129,7 @@ void loop()
     updateFlag = true;
   }
 
-  if (checkBound(newHum, hum, diffRH))
+  if (checkBound(newHum, hum, diffRH) || timeUpdateFlag)
   {
     hum = newHum;
     Serial.print("New humidity: ");
@@ -134,7 +141,7 @@ void loop()
   // process data from CCS811
   if(ccs.available())
   {
-    ccs.setEnvironmentalData(int(hum + 0.5), newTempC);
+    ccs.setEnvironmentalData(int(newHum + 0.5), newTempC);
     if(!ccs.readData())
     {
       int eCO2reading = ccs.geteCO2();
@@ -150,7 +157,7 @@ void loop()
 
         if (millis() > 60000) // allow sensor to warm up
         {
-          if (checkBound(neweCO2, eCO2, diffeCO2))
+          if (checkBound(neweCO2, eCO2, diffeCO2) || timeUpdateFlag)
           {
             eCO2 = neweCO2;
             Serial.print("New eCO2: ");
@@ -158,7 +165,7 @@ void loop()
             CCS811_obj["eCO2"] = eCO2;
             updateFlag = true;
           }
-          if (checkBound(newTVOC, TVOC, diffTVOC))
+          if (checkBound(newTVOC, TVOC, diffTVOC) || timeUpdateFlag)
           {
             TVOC = newTVOC;
             Serial.print("New TVOC: ");
@@ -176,6 +183,12 @@ void loop()
   {
     sendJSONviaMQTT(doc, mqtt_topic);
     updateFlag = false;
+    if (timeUpdateFlag)
+    {
+      Serial.println("Max time between updates reached.");
+      timeUpdateFlag = false;
+    }
+    lastTimeUpdate = millis(); // reset timer
   }
 }
 
