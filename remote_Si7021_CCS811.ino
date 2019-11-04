@@ -1,22 +1,44 @@
-#include <PubSubClient.h>
 #include <ESP8266WiFi.h>
+#include "Adafruit_MQTT.h"
+#include "Adafruit_MQTT_Client.h"
 #include "ArduinoJson.h"
 #include "Adafruit_CCS811.h"
 #include "Adafruit_Si7021.h"
 #include "secrets.h"
 
-//wifi setup
-#define wifi_ssid SECRET_WIFI_SSID
-#define wifi_password SECRET_WIFI_PASSWORD
-WiFiClient espClient;
+/************************* WiFi Access Point *********************************/
+#define WLAN_SSID  SECRET_WIFI_SSID
+// uncomment if using password to connect to wifi. also change in setup_wifi() below
+//#define WLAN_PASS SECRET_WIFI_PASSWORD
 
-// MQTT setup
-#define MQTT_CLIENT_NAME "D1MiniMultisensor"
-#define mqtt_server SECRET_MQTT_SERVER
-//#define mqtt_user "user"
-//#define mqtt_password "password"
-char* mqtt_topic = "sensors/multisensor";
-PubSubClient client(espClient);
+/************************* Adafruit.io Setup *********************************/
+
+#define AIO_SERVER      "io.adafruit.com"
+// Using port 8883 for MQTTS
+#define AIO_SERVERPORT  8883
+// Adafruit IO Account Configuration
+// (to obtain these values, visit https://io.adafruit.com and click on Active Key)
+#define AIO_USERNAME    SECRET_AIO_USERNAME
+#define AIO_KEY         SECRET_AIO_KEY
+
+/************ Global State (you don't need to change this!) ******************/
+
+// WiFiFlientSecure for SSL/TLS support
+WiFiClientSecure client;
+
+// Setup the MQTT client class by passing in the WiFi client and MQTT server and login details.
+Adafruit_MQTT_Client mqtt(&client, AIO_SERVER, AIO_SERVERPORT, AIO_USERNAME, AIO_KEY);
+
+// io.adafruit.com SHA1 fingerprint
+static const char *fingerprint PROGMEM = "77 00 54 2D DA E7 D8 03 27 31 23 99 EB 27 DB CB A5 4C 57 18";
+
+/****************************** Feeds ***************************************/
+
+// Setup a feed called '<feedname>' for publishing.
+// Notice MQTT paths for AIO follow the form: <username>/feeds/<feedname>
+Adafruit_MQTT_Publish feed = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/<feedname>");
+
+/****************************** Sensor Setup ***************************************/
 
 // JSON setup
 const size_t capacity = JSON_OBJECT_SIZE(1) + 2*JSON_OBJECT_SIZE(3) + JSON_OBJECT_SIZE(6);
@@ -186,13 +208,13 @@ void sendJSONviaMQTT(DynamicJsonDocument doc, char* mqtt_topic)
   Serial.println("");
   char buffer[1024];
   size_t n = serializeJson(doc, buffer);
-  if(client.publish(mqtt_topic, buffer, n))
+  if (! feed.publish(buffer)) 
   {
-    Serial.println("MQTT publish success.");
-  }
-  else
+    Serial.println(F("Publish Failed"));
+  } 
+  else 
   {
-    Serial.println("MQTT publish error.");
+    Serial.println(F("Publish OK!"));
   }
 }
 
@@ -204,7 +226,9 @@ void setup_wifi()
   Serial.print("Connecting to ");
   Serial.println(wifi_ssid);
 
-  WiFi.begin(wifi_ssid, wifi_password);
+  //use one or the other
+  WiFi.begin(WLAN_SSID, NULL); // open network
+  //WiFi.begin(WLAN_SSID, WLAN_PASS); // password protected network
 
   while (WiFi.status() != WL_CONNECTED)
   {
@@ -216,30 +240,31 @@ void setup_wifi()
   Serial.println("WiFi connected");
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
+
+  // check the fingerprint of io.adafruit.com's SSL cert
+  client.setFingerprint(fingerprint);
 }
 
-void reconnect()
-{
-  // Loop until we're reconnected
-  while (!client.connected())
-  {
-    Serial.print("Attempting MQTT connection...");
-    // Attempt to connect
-    // If you do not want to use a username and password, change next line to
-    // if (client.connect("ESP8266Client"))
-    if (client.connect(MQTT_CLIENT_NAME))//, mqtt_user, mqtt_password))
-    {
-      Serial.println("connected");
-    }
-    else
-    {
-      Serial.print("failed, rc=");
-      Serial.print(client.state());
-      Serial.println(" try again in 5 seconds");
-      // Wait 5 seconds before retrying
-      delay(5000);
-    }
+// Function to connect and reconnect as necessary to the MQTT server.
+// Should be called in the loop function and it will take care of connecting.
+void MQTT_connect() {
+  int8_t ret;
+
+  // Stop if already connected.
+  if (mqtt.connected()) {
+    return;
   }
+
+  Serial.print("Connecting to MQTT... ");
+
+  while ((ret = mqtt.connect()) != 0) { // connect will return 0 for connected
+       Serial.println(mqtt.connectErrorString(ret));
+       Serial.println("Retrying MQTT connection in 5 seconds...");
+       mqtt.disconnect();
+       delay(5000);  // wait 5 seconds
+  }
+
+  Serial.println("MQTT Connected!");
 }
 
 bool checkBound(float newValue, float prevValue, float maxDiff)
