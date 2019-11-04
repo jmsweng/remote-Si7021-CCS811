@@ -111,7 +111,7 @@ void loop()
   }
   client.loop();
 
-  if (millis() - lastTimeUpdate <= 5*60*1000) //5 minutes
+  if (millis() - lastTimeUpdate >= 5*60*1000) //5 minutes
   {
     timeUpdateFlag = true;
   }
@@ -181,14 +181,14 @@ void loop()
   // send data
   if (updateFlag)
   {
-    sendJSONviaMQTT(doc, mqtt_topic);
-    updateFlag = false;
     if (timeUpdateFlag)
     {
       Serial.println("Max time between updates reached.");
       timeUpdateFlag = false;
     }
     lastTimeUpdate = millis(); // reset timer
+    sendJSONviaMQTT(doc, mqtt_topic);
+    updateFlag = false;
   }
 }
 
