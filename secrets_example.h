@@ -1,3 +1,5 @@
+//rename file to secrets.h to use
+
 #ifndef SECRETS_H
 #define SECRETS_H
 
