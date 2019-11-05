@@ -6,13 +6,13 @@
 #include "secrets.h"
 
 //wifi setup
-#define wifi_ssid SECRET_WIFI_SSID
-#define wifi_password SECRET_WIFI_PASSWORD
+#define WIFI_SSID SECRET_WIFI_SSID
+#define WIFI_PASSWORD SECRET_WIFI_PASSWORD
 WiFiClient espClient;
 
 // MQTT setup
 #define MQTT_CLIENT_NAME "D1MiniMultisensor"
-#define mqtt_server SECRET_MQTT_SERVER
+#define MQTT_SERVER SECRET_MQTT_SERVER
 //#define mqtt_user "user"
 //#define mqtt_password "password"
 char* mqtt_topic = "sensors/multisensor";
@@ -56,7 +56,7 @@ void setup()
   WiFi.mode(WIFI_STA);
   Serial.begin(115200);
   setup_wifi();
-  client.setServer(mqtt_server, 1883);
+  client.setServer(MQTT_SERVER, 1883);
   reconnect();
   ESP8266_obj["ChipID"] = ESP.getChipId();
   // start Si7021
@@ -215,9 +215,11 @@ void setup_wifi()
   // We start by connecting to a WiFi network
   Serial.println();
   Serial.print("Connecting to ");
-  Serial.println(wifi_ssid);
+  Serial.println(WIFI_SSID);
 
-  WiFi.begin(wifi_ssid, wifi_password);
+  //password or no password, use only one
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  //WiFi.begin(WIFI_SSID, NULL);
 
   while (WiFi.status() != WL_CONNECTED)
   {
