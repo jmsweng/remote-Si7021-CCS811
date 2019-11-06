@@ -42,7 +42,7 @@ Adafruit_MQTT_Publish feed = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/"
 /****************************** Sensor Setup ***************************************/
 
 // JSON setup
-const size_t capacity = JSON_OBJECT_SIZE(1) + 2*JSON_OBJECT_SIZE(3) + JSON_OBJECT_SIZE(6);
+const size_t capacity = JSON_OBJECT_SIZE(1) + 2*JSON_OBJECT_SIZE(3) + JSON_OBJECT_SIZE(6) + 500;
 DynamicJsonDocument doc(capacity);
 JsonObject ESP8266_obj = doc.createNestedObject("ESP8266");
 JsonObject Si7021_obj = doc.createNestedObject("Si7021");
@@ -90,22 +90,22 @@ void setup()
   else
   {
     Si7021_obj["Status"] = "OK";
-//    switch(sensor.getModel())
-//    {
-//    case SI_Engineering_Samples:
-//      Si7021_obj["Model"] = "SI engineering samples"; break;
-//    case SI_7013:
-//      Si7021_obj["Model"] = "Si7013"; break;
-//    case SI_7020:
-//      Si7021_obj["Model"] = "Si7020"; break;
-//    case SI_7021:
-//      Si7021_obj["Model"] = "Si7021"; break;
-//    case SI_UNKNOWN:
-//    default:
-//      Si7021_obj["Model"] = "Unknown";
-//    }
-    //Si7021_obj["Rev"] = sensor.getRevision();
-    //Si7021_obj["SerialNum"] = String(sensor.sernum_a, HEX) + String(sensor.sernum_b, HEX);
+   switch(sensor.getModel())
+   {
+   case SI_Engineering_Samples:
+     Si7021_obj["Model"] = "SI engineering samples"; break;
+   case SI_7013:
+     Si7021_obj["Model"] = "Si7013"; break;
+   case SI_7020:
+     Si7021_obj["Model"] = "Si7020"; break;
+   case SI_7021:
+     Si7021_obj["Model"] = "Si7021"; break;
+   case SI_UNKNOWN:
+   default:
+     Si7021_obj["Model"] = "Unknown";
+   }
+    Si7021_obj["Rev"] = sensor.getRevision();
+    Si7021_obj["SerialNum"] = String(sensor.sernum_a, HEX) + String(sensor.sernum_b, HEX);
   }
   
   // start CCS811
