@@ -94,7 +94,7 @@ void setup()
   }
   else
   {
-    CCS811_obj["Status"] = "OK";
+    CCS811_obj["Status"] = "WARMUP"; // needs to warm up initially
   }
   if(Si7021_obj["Status"] == "ERROR" || CCS811_obj["Status"] == "ERROR")
   {
@@ -155,8 +155,9 @@ void loop()
         neweCO2 /= readings_to_avg;
         newTVOC /= readings_to_avg;
 
-        if (millis() > 60000) // allow sensor to warm up
+        if (millis() >= 60000) // allow sensor to warm up
         {
+          CCS811_obj["Status"] = "OK"; // set status once warmed up
           if (checkBound(neweCO2, eCO2, diffeCO2) || timeUpdateFlag)
           {
             eCO2 = neweCO2;
