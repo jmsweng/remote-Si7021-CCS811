@@ -3,6 +3,8 @@
 Use an ESP8266 to read BME280/Si7021 and CCS811 sensors and send data via MQTT in JSON format.
 Reports every TVOC reading that differs from the previous (1 measurement per second)
 
+Forked from seanauff's remote-Si7021-CCS811, some of the changes (ex. setting readings and readings_to_avg to both = 1) are somewhat hacky. Left that way to easily allow changes back to report time averaged measurements. 
+
 ## Instructions
 
 ### Download code
