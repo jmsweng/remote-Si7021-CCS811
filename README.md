@@ -1,6 +1,7 @@
 # Air quality monitor
 
-Use an ESP8266 to read Si7021 and CCS811 sensors and send data via MQTT in JSON format.
+Use an ESP8266 to read BME280 and CCS811 sensors and send data via MQTT in JSON format.
+Reports every TVOC reading that differs from the previous (1 measurement per second)
 
 ## Instructions
 
