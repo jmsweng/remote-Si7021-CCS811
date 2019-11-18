@@ -34,7 +34,7 @@ int readings_to_avg = 1;
 
 float eCO2 = 0;
 float neweCO2;
-float TVOC = -1;
+float TVOC = -1; //Report first TVOC reading
 float newTVOC;
 float diffeCO2 = 25;
 float diffTVOC = 5;
@@ -67,11 +67,11 @@ uint32_t getAbsoluteHumidity(float temperature, float humidity) {
 }
 
 float sgp_eCO2 = 0;
-float sgp_TVOC = 0;
+float sgp_TVOC = -1; // Report first TVOC reading
 float sgp_H2 = 0;
 float sgp_EtOH = 0;
 
-int counter = 0;
+int b_counter = 0; // Counter to determine wen to get baseline values
 
 // general setup
 bool updateFlag = false;
@@ -190,7 +190,8 @@ void loop()
     SGP30_obj["TVOC"] = sgp_TVOC;
     updateFlag = true;
   }
-  if (sgp.eCO2 != sgp_eCO2) // Update sgp30 eCO2 reading if different
+  //if (sgp.eCO2 != sgp_eCO2) // Update sgp30 eCO2 reading if different
+  if (checkBound(sgp.eCO2, sgp_eCO2, diffeCO2))
   {
     sgp_eCO2 = sgp.eCO2;
     SGP30_obj["eCO2"] = sgp_eCO2;
@@ -218,11 +219,11 @@ void loop()
   }
   
   delay(1000);
-  counter++;
-  Serial.println(counter);
-  if (counter == 3600) // Get baseline reading ~every hour (every 3600 readings)
+  b_counter++;
+  //Serial.println(counter);
+  if (b_counter == 3600) // Get baseline reading ~every hour (every 3600 readings)
   {
-    counter = 0;
+    b_counter = 0;
     uint16_t TVOC_base, eCO2_base;
     if (! sgp.getIAQBaseline(&eCO2_base, &TVOC_base)) 
     {
@@ -261,8 +262,8 @@ void loop()
 
         if (millis() > 60000) // allow sensor to warm up
         {
-          //if (checkBound(neweCO2, eCO2, diffeCO2))
-          if (neweCO2 != eCO2)
+          if (checkBound(neweCO2, eCO2, diffeCO2))
+          //if (neweCO2 != eCO2)
           {
             eCO2 = neweCO2;
             Serial.print("\n");
