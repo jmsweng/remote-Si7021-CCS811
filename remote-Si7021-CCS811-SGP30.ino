@@ -34,7 +34,7 @@ int readings_to_avg = 1;
 
 float eCO2 = 0;
 float neweCO2;
-float TVOC = 0;
+float TVOC = -1;
 float newTVOC;
 float diffeCO2 = 25;
 float diffTVOC = 5;
@@ -219,9 +219,10 @@ void loop()
   
   delay(1000);
   counter++;
-  
-  if (counter == 30) // Get baseline reading every 30 readings
+  Serial.println(counter);
+  if (counter == 3600) // Get baseline reading ~every hour (every 3600 readings)
   {
+    counter = 0;
     uint16_t TVOC_base, eCO2_base;
     if (! sgp.getIAQBaseline(&eCO2_base, &TVOC_base)) 
     {
@@ -230,18 +231,11 @@ void loop()
     }
     Serial.print("****Baseline values: eCO2: 0x"); Serial.print(eCO2_base, HEX);
     Serial.print(" & TVOC: 0x"); Serial.println(TVOC_base, HEX);
-    if (TVOC_base != TVOC_baseline) // Update sgp30 TVOC baseline reading if different
-    {
-      TVOC_baseline = TVOC_base;
-      SGP30_obj["TVOC_base"] = TVOC_baseline;
-      updateFlag = true;
-    }
-    if (eCO2_base != eCO2_baseline) // Update sgp30 eCO2 baseline reading if different
-    {
-      eCO2_baseline = eCO2_base;
-      SGP30_obj["eCO2_base"] = eCO2_baseline;
-      updateFlag = true;
-    }
+    //Baseline values reported as uint16_t, convert to hex for use
+    SGP30_obj["TVOC_base"] = TVOC_base;
+    updateFlag = true;
+    SGP30_obj["eCO2_base"] = eCO2_base;
+    updateFlag = true;
   }
  
   // process data from CCS811
